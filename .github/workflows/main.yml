@@ -1,0 +1,35 @@
+name: AnyDesk Cloud PC
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+  
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install XFCE and AnyDesk
+      run: |
+        sudo apt update
+        sudo DEBIAN_FRONTEND=noninteractive apt install -y xfce4 xfce4-goodies wget gnupg2
+        wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | sudo gpg --dearmor -o /usr/share/keyrings/anydesk-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/anydesk-archive-keyring.gpg] http://deb.anydesk.com/ all main" | sudo tee /etc/apt/sources.list.d/anydesk-stable.list
+        sudo apt update
+        sudo apt install -y anydesk
+
+    - name: Start Desktop & AnyDesk
+      run: |
+        export DISPLAY=:1
+        Xvfb :1 -screen 0 1280x720x24 &
+        startxfce4 &
+        sudo systemctl start anydesk
+        echo "Password123@" | sudo anydesk --set-password
+        echo "========================================="
+        echo "AnyDesk ID is: $(anydesk --get-id)"
+        echo "========================================="
+        sleep 6h
+        
